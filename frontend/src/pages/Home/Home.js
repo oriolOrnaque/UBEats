@@ -7,7 +7,7 @@ function Helloworld() {
     <div>
         <h3 className='justi'>Page under construction!</h3>
         <h4>Sorry for the inconvinience!</h4>
-        <img src={photo} />
+        <img src={photo} alt='under construction pikachu'/>
     </div>
   );
 }

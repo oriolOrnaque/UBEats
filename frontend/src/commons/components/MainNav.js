@@ -1,13 +1,22 @@
-import React from 'react';
-
-import {Navbar, Form, FormControl, Nav} from 'react-bootstrap';
-
-import photo from '../../images/ubeats.png'
+import React, {useState} from 'react';
 
 
-function MainNav() { 
+import {Navbar, Form, FormControl, Nav, Button} from 'react-bootstrap';
+
+import photo from '../../images/ubeats.png';
+import sidebar from '../../images/navbar_sidebar.png';
+
+const MainNav = ({openSidebar}) => { 
     return (
         <Navbar bg="light" expand="lg">
+            <a onClick={() => openSidebar()}>
+                <img style = {{margin:"25px"}}
+                    src={sidebar} 
+                    height="15px"
+                    width="17px"
+                    alt="Open sidebar">
+                </img>
+            </a>
             <Navbar.Brand href="/">
             <img
                 src={photo}

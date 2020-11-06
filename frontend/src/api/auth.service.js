@@ -1,8 +1,8 @@
 import axios from "axios";
 
-// const API_URL_DEV = "http://localhost:3000/api/";
-const API_URL_BUILD = "https://cors-anywhere.herokuapp.com/http://ub-gei-es-ubeats-clone.herokuapp.com/api/";
-const API_URL = API_URL_BUILD;
+const API_URL_DEV = "http://localhost:3000/api/";
+//const API_URL_BUILD = "https://cors-anywhere.herokuapp.com/http://ub-gei-es-ubeats-clone.herokuapp.com/api/";
+const API_URL = API_URL_DEV;
 
 const register = (name, email, password, type) => {
   return axios.post(API_URL + "register", {

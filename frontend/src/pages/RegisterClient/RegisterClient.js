@@ -12,7 +12,6 @@ import { register } from "../../actions/auth";
 import '../../commons/components/App.css';
 
 
-
 const required = (value) => {
   if (!value) {
     return (

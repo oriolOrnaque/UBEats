@@ -1,0 +1,17 @@
+.div {
+    display: table-cell;
+    margin: auto;
+}
+
+.navlink {
+    text-decoration: none;
+    font-size: medium;
+}
+
+.div-margin {
+    margin: 17px;
+}
+
+.div-button {
+    margin-bottom: 10px;
+}

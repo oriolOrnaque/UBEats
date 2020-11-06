@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { logout } from "./actions/auth";
@@ -15,6 +15,7 @@ import ProfileClient from './pages/ProfileClient/ProfileClient.js'
 import ProfileRestaurant from './pages/ProfileRestaurant/ProfileRestaurant.js'
 
 import MainNav from './commons/components/MainNav.js';
+import GeneralSidebar from './commons/components/GeneralSidebar.js';
 
 import {BrowserRouter as Router, Switch, Route} from 'react-router-dom';
 
@@ -23,7 +24,8 @@ const App = () => {
 
   const { user: currentUser } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
-
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
   console.log({user: currentUser})
 
   useEffect(() => {
@@ -40,7 +42,9 @@ const App = () => {
   return (
     <Router history={history}>
       <div>
-        <MainNav />
+        
+        {console.log(sidebarOpen)}
+        <MainNav openSidebar={() => setSidebarOpen(!sidebarOpen)}/>
         <Switch>
           <Route exact path="/" component={Home}/>
           <Route path='/login' component={Login}/>
