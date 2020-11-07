@@ -15,7 +15,7 @@ async function _get_all_users(req, res){
 }
 
 /**
- * Method called to log in using a email
+ * Method called to log in using an email
  * @param {} req 
  * @param {*} res 
  */
@@ -43,4 +43,24 @@ async function register(req, res){
     return res.status(200).send({user}) 
 }
 
-module.exports = { login, register, _get_all_users }
+/** Method called to remove an user account
+ * @param {} req
+ * @param {*} res
+ */
+async function remove(req, res){
+    const {body} = req // body = req.body
+    /*
+     const status = await sch_users.deleteUser(body.email)
+     if(user.error)
+      ...
+     */
+    const user = await sch_users.getUserByEmail(body.email)
+    if (!user) return res.status(404).send({"message":`User with email:${body.email} not found. Please enter a valid account.`}) 
+    if (user) {
+        if (!body.password || user.pass != body.password) return res.status(403).send({"message":"Invalid user/password. Please enter a valid account"})
+        delete user.pass
+        return res.status(200).send({user}) 
+    }
+}
+
+module.exports = { login, register, _get_all_users, remove }

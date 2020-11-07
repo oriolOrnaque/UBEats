@@ -12,6 +12,8 @@ const router = express.Router()
 router.post('/login',Users.login)
 router.post('/register',Users.register)
 
+router.delete('/user/delete', Users.remove)
+
 //Customer
 router.post('/customer/login',Users.login)
 router.post('/customer/register',Users.register)
