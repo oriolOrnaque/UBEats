@@ -38,6 +38,83 @@ function getUserByEmail(email) {
 }
 
 /**
+ * Method that deletes an user from the DB
+ * @param {*} user email used as a primary key
+ * @returns
+ */
+async function deleteUserByEmail(email){
+        const user = await getUserByEmail(email)
+        //console.log(user)
+        if (!user)
+                return {error: `User ${email} does not exist`, errCode: 404}
+
+        const user_type = user.tipo
+
+        let table;
+
+        switch(user_type) {
+                case 'restaurant':
+                        table = 'restaurants'
+                        break;
+                case 'customer':
+                        table = 'customers'
+                        break;
+                case 'deliveryman':
+                        table = 'deliverymans'
+                        break;
+        }
+
+        const qwe = await _deleteUserByEmailFromTable('users', email)
+        if(qwe.error){
+                return {error: qwe.error, errCode: 400}
+        }
+
+        const status = await _deleteUserByEmailFromTable(table, email)
+        //console.log(status)
+        if (status.error){
+                return {error: status.error, errCode: 400}
+        }
+        
+        return status
+}
+
+async function updateUser(body)
+{
+        const {email} = body
+        const user = await getUserByEmail(email)
+        if(!user)
+                return {error: `User ${email} does not exist`, errCode: 404}
+        // user does exist
+        const table = _getTableFromUserType(user.tipo)
+
+        const status = await _updateUserByEmailFromTable(table, body)
+
+        return status
+}
+
+function _getTableFromUserType(user_type)
+{
+        let table;
+
+        switch(user_type)
+        {
+                case 'restaurant':
+                        table = 'restaurants'
+                        break;
+                case 'customer':
+                        table = 'customers'
+                        break;
+                case 'deliveryman':
+                        table = 'deliverymans'
+                        break;
+                default:
+                        table = 'unknown'
+        }
+
+        return table
+}
+
+/**
  * Method that creates and inserts a user into DB
  * @param {*} values contains all the values needed to create a user 
  * @returns 
@@ -61,24 +138,73 @@ async function createUser(values){
     .catch(err =>  { return {error: `${err}`, errCode : 400}}) 
 }
 
-/**
- * Method that deletes an user from the DB
- * @param {*} user email used as a primary key
- * @returns
- */
-async function deleteUser(email){
-        // check what type of user the emails belongs to && that the user exists
-        let existing_user = await _getSpecificUser(email)
-        // check if the user exists
-        if (existing_user.error)
-                return {error: `${existing_user.error}`, errCode: existing_user.errCode}
+function _extractUserBody(body)
+{
+        let user = {}
 
-        if(existing_user.tipo === 'customer'){}
-        else if(existing_user.tipo === 'restaurant'){}
-        else if(existing_user.tipo === 'deliveryman'){}
+        if(body.email)
+                user.email = body.email
+        if(body.name)
+                user.name = body.name
+        if(body.CIF)
+                user.CIF = body.CIF
+        if(body.street)
+                user.street = body.street
+        if(body.pass)
+                user.pass = body.pass
+        if(body.phone)
+                user.phone = body.phone
+        if(body.tipo)
+                user.tipo = body.tipo
+
+        return user
 }
 
+function _extractRestaurantBody(body)
+{
+        let restaurant = {}
 
+        if(body.email)
+                restaurant.email = body.email
+        if(body.avaliability)
+                restaurant.avaliability = body.avaliability
+        if(body.visible)
+                restaurant.visible = body.visible
+        if(body.iban)
+                restaurant.iban = body.iban
+        if(body.allergens)
+                restaurant.allergens = body.allergens
+
+        return restaurant
+}
+
+function _extractDeliverymansBody(b)
+{
+        let d = {}
+
+        if(b.email)
+                d.email = b.email
+        if(b.avaliability)
+                d.avaliability = b.avaliability
+        if(b.visible)
+                d.visible = b.visible
+        if(b.iban)
+                d.iban = b.iban
+
+        return d
+}
+
+function _extractCustomersBody(b)
+{
+        let c = {}
+
+        if(b.email)
+                c.email = b.email
+        if(b.card)
+                c.email = b.email
+
+        return c
+}
 
 /**
  * Support method that creates the specific user type for each user. These types are : customer, deliveryman and restaurant.
@@ -102,6 +228,30 @@ function _createSpecficicUser(values){
 }
 
 /**
+ * Support method for deleting a row from a table that has an email as key
+ * @Param {*} table, email
+ * @returns
+ */
+function _deleteUserByEmailFromTable(table, email){
+        console.log(table, email)
+        return pool.query(`DELETE FROM ${table} WHERE email = '${email}' RETURNING *`)
+                .then(res => {
+                        console.log(res)
+                        return res.rows[0] || null
+                })
+                .catch(err => {
+                        console.log(err)
+                        return {error: `${err}`, errCode: 400}
+                })
+}
+
+function _updateUserByEmailFromTable(table, body)
+{
+        let query = 'UPDATE'.concat(' ', table, ' SET ')
+        //pool.query(query)
+}
+
+/**
  * Support method for user data retrieve from the database. A user is identified by email
  * @Param {*} email
  * @returns
@@ -122,4 +272,4 @@ function _getSpecificUser(body){
                 })
 }
 
-module.exports = {getUsers, getUserByEmail, createUser, deleteUser}
+module.exports = {getUsers, getUserByEmail, createUser, deleteUserByEmail}

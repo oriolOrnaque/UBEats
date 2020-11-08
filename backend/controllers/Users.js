@@ -49,18 +49,23 @@ async function register(req, res){
  */
 async function remove(req, res){
     const {body} = req // body = req.body
-    /*
-     const status = await sch_users.deleteUser(body.email)
-     if(user.error)
-      ...
-     */
-    const user = await sch_users.getUserByEmail(body.email)
-    if (!user) return res.status(404).send({"message":`User with email:${body.email} not found. Please enter a valid account.`}) 
-    if (user) {
-        if (!body.password || user.pass != body.password) return res.status(403).send({"message":"Invalid user/password. Please enter a valid account"})
-        delete user.pass
-        return res.status(200).send({user}) 
-    }
+    //console.log(body.email)
+    const status = await sch_users.deleteUserByEmail(body.email)
+    //console.log(status)
+    if(status.error)
+        return res.status(status.errCode).send(status.error)
+    delete status.pass
+    return res.status(200).send({status})
+     
 }
 
-module.exports = { login, register, _get_all_users, remove }
+async function update(req, res){
+    const {body} = req
+    const status = await sch_users.updateUser(body)
+    if(status.error) return res.status(user.errCode).send(user.error)
+        return res.status(status.errCode).send(status.error)
+    delete status.pass
+    return res.status(200).send({status})
+}
+
+module.exports = { login, register, _get_all_users, remove, update }
