@@ -32,6 +32,7 @@ async function getUsers() {
 function getUserByEmail(email) {
     return pool.query('SELECT * FROM users WHERE email = $1',[email])
         .then(res =>{
+            // return the first row. It should be the ONLY row
             return res.rows[0] || null
         })
         .catch(err => err) 
@@ -50,19 +51,9 @@ async function deleteUserByEmail(email){
 
         const user_type = user.tipo
 
-        let table;
-
-        switch(user_type) {
-                case 'restaurant':
-                        table = 'restaurants'
-                        break;
-                case 'customer':
-                        table = 'customers'
-                        break;
-                case 'deliveryman':
-                        table = 'deliverymans'
-                        break;
-        }
+        let table = _getTableFromUserType(user_type)
+        if(table === 'unknown')
+                return {error: "Unknown type of user", errCode: 400}
 
         const qwe = await _deleteUserByEmailFromTable('users', email)
         if(qwe.error){
@@ -86,10 +77,28 @@ async function updateUser(body)
                 return {error: `User ${email} does not exist`, errCode: 404}
         // user does exist
         const table = _getTableFromUserType(user.tipo)
+        if(table === 'unknown')
+                return {error: "Unknown type of user", errCode: 400}
 
-        const status = await _updateUserByEmailFromTable(table, body)
+        const user_body = _extractUserBody(body)
+        const type_body = _extractTypeBody(user.tipo, body)
+        if(type_body.error)
+                return {error: type_body.error, errCode: type_body.errCode}
 
-        return status
+        var status1 = await _updateUserByEmailOnTable('users', user_body)
+        if(status1.error)
+                return {error: status1.error, errCode: status1.errCode}
+
+        var status2 = await _updateUserByEmailOnTable(table, type_body)
+        if(status2.error)
+                //delete status2.errCode
+                return status2 //{error: status2.error, errCode: status2.errCode}
+
+        //status1.user_type = status2
+        status1 = {...status1, status2}
+        console.log(status1)
+
+        return {user: status1}
 }
 
 function _getTableFromUserType(user_type)
@@ -158,6 +167,24 @@ function _extractUserBody(body)
                 user.tipo = body.tipo
 
         return user
+}
+
+function _extractTypeBody(user_type, body)
+{
+        switch(user_type)
+        {
+                case 'customer':
+                        return _extractCustomersBody(body)
+                        break;
+                case 'restaurant':
+                        return _extractRestaurantBody(body)
+                        break;
+                case 'deliveryman':
+                        return _extractDeliverymansBody(body)
+                        break;
+                default:
+                        return {error: "Unknown user type", errCode: 400}
+        }
 }
 
 function _extractRestaurantBody(body)
@@ -245,31 +272,32 @@ function _deleteUserByEmailFromTable(table, email){
                 })
 }
 
-function _updateUserByEmailFromTable(table, body)
+function _updateUserByEmailOnTable(table, body)
 {
+        if(!(body.email))
+                return {error: "No email specified", errCode: 400}
+
         let query = 'UPDATE'.concat(' ', table, ' SET ')
+
+        for(const key in body)
+        {
+                if(key != 'email')
+                {
+                        query.concat(`${key} = `)
+                        if(typeof body[key] == "string")
+                                query.concat('\' ')
+                        query.concat(`${body[key]}`)
+                        if(typeof body[key] == "string")
+                                query.concat('\' ')
+                }
+        }
+
+        query.concat(`WHERE email = '${body.email}';`)
+
+        console.log(query)
         //pool.query(query)
+        //
+        return {ok: "ok"}
 }
 
-/**
- * Support method for user data retrieve from the database. A user is identified by email
- * @Param {*} email
- * @returns
- */
-function _getSpecificUser(body){
-        // should check for sql injection in email
-        const sql = `SELECT * FROM users WHERE email = \'${body.email}\'`
-
-        // launch the query and declare callbacks for when the promise is fullfiled
-        return pool.query(sql)
-                .then(res => {
-                        // return the first row (it should be the ONLY row)
-                        return res.rows[0]
-                })
-                .catch(err => {
-                        // return not found
-                        return {error: `${err} specific`, errCode: 404}
-                })
-}
-
-module.exports = {getUsers, getUserByEmail, createUser, deleteUserByEmail}
+module.exports = {getUsers, getUserByEmail, createUser, deleteUserByEmail, updateUser}

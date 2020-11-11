@@ -62,8 +62,11 @@ async function remove(req, res){
 async function update(req, res){
     const {body} = req
     const status = await sch_users.updateUser(body)
-    if(status.error) return res.status(user.errCode).send(user.error)
+    if(status.error) 
+    {
+        console.log(status)
         return res.status(status.errCode).send(status.error)
+    }
     delete status.pass
     return res.status(200).send({status})
 }

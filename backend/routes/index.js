@@ -13,7 +13,7 @@ router.post('/login',Users.login)
 router.post('/register',Users.register)
 
 router.delete('/user', Users.remove)
-router.put('/user/', User.update)
+router.put('/user/', Users.update)
 
 //Customer
 router.post('/customer/login',Users.login)
